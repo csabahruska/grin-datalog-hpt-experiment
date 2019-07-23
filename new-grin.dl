@@ -1,0 +1,134 @@
+/*
+  OLD GRIN PROBLEMS:
+    bind pattern naming
+      WORKAROUND: '(CInt r)' identifies the 'pure v3' instruction
+
+    case alternative nameing / Basic Block naming
+      WORKAROUND: Basic Block name can be constructed e.g. case identifier 'h' + alternative identifier '(CInt x)' so the Basic Block's name would be 'h:(CInt x)'
+
+  IDEALLY:
+    case alternatives would call Basic Blocks
+    @-pattern for bind patterns and case patterns
+
+  APPROACH:
+    define a new AST for the improved GRIN with conversion function to/from the current GRIN AST
+*/
+
+
+/*
+grinMain =
+  c0 <- pure 1
+  c1 <- pure 12
+
+  v1 <- pure (CInt c0)
+  t1 <- store v1
+  v2 <- pure (CInt c1)
+  t2 <- store v2
+  v3 <- eval t2
+  p1@(CInt r) <- pure v3
+  v4 <-_prim_int_print r
+  pure v4
+
+eval q = v <- fetch q
+         h <- case v of
+          p2@(CInt x) -> BB0 x
+          p3          -> BB1 p3
+         BB0 y = pure v
+         BB1 y2 = pure y2
+         pure h
+*/
+
+.type BasicBlock
+.type Function
+.type Variable
+.type Tag
+.type Literal
+.type CodeName = BasicBlock | Function
+
+// literal value
+// example: result <- pure 1
+.decl LitAssign(result:Variable, l:Literal)
+// node value
+// example: result_node <- pure (Ctag item0 item1)
+.decl Node(result_node:Variable, t:Tag)
+.decl NodeArgument(result_node:Variable, i:number, item:Variable)
+// store/fetch/update
+// example: result <- fetch value
+.decl Fetch(result:Variable, value:Variable)
+.decl Store(result:Variable, value:Variable)
+// app a.k.a. call
+// example: call_result <- f value0 value1
+.decl Call(call_result:Variable, f:Function)
+.decl CallArgument(call_result:Variable, i:number, value:Variable)
+// bind pattern
+// example: node@(Ctag param0 param1) <- pure input_value
+.decl NodePattern(node:Variable, t:Tag, input_value:Variable)
+.decl NodeParameter(node:Variable, i:number, parameter:Variable)
+// function
+// example: f param0 param1 = ...
+.decl FunctionParameter(f:Function, i:number, parameter:Variable)
+// case + alt
+// example:
+//  case_result <- case scrut of
+//    alt_value@(Ctag param0 param1) -> basic_block_name arg0 arg1
+.decl Case(case_result:Variable, scrutinee:Variable)
+.decl Alt(case_result:Variable, alt_value:Variable, t:Tag, b:BasicBlock)
+.decl AltParameter(case_result:Variable, t:Tag, i:number, parameter:Variable)
+.decl AltArgument(case_result:Variable, t:Tag, i:number, value:Variable)
+// basic block
+// example: bb param0 param1 = 
+.decl BlockParameter(b:BasicBlock, i:number, parameter:Variable)
+// pure a.k.a. return value
+// example: pure value
+.decl ReturnValue(n:CodeName, value:Variable)
+
+// instruction ordering
+.decl FirstInst(n:CodeName, result:Variable)
+.decl NextInst(prev:Variable, next:Variable)
+
+LitAssign("c0", "1").
+LitAssign("c1", "12").
+Node("v1", "CInt").
+NodeArgument("v1", 0, "c0").
+Store("t1", "v1").
+Node("v2", "CInt").
+NodeArgument("v2", 0, "c1").
+Store("t2", "v2").
+Call("v3", "eval").
+CallArgument("v3", 0, "t2").
+NodePattern("p1", "CInt", "v3").
+NodeParameter("p1", 0, "r").
+Call("v4", "_prim_int_print").
+CallArgument("v4", 0, "r").
+
+FunctionParameter("eval", 0, "q").
+Fetch("v", "q").
+Case("h", "v").
+
+Alt("h", "p2", "CInt", "BB0").
+AltParameter("h", "CInt", 0, "x").
+AltArgument("h", "CInt", 0, "x").
+
+Alt("h", "p3", "#default", "BB1").
+AltParameter("h", "#default", 0, "p3").
+AltArgument("h", "#default", 0, "p3").
+
+BlockParameter("BB0", 0, "y").
+
+ReturnValue("grinMain", "v4").
+ReturnValue("BB0", "v").
+ReturnValue("eval", "h").
+
+FirstInst("grinMain", "c0").
+FirstInst("eval", "v").
+
+NextInst("c0", "c1").
+NextInst("c1", "v1").
+NextInst("v1", "t1").
+NextInst("t1", "v2").
+NextInst("v2", "t2").
+NextInst("t2", "v3").
+NextInst("v3", "p1").
+NextInst("p1", "v4").
+
+NextInst("v", "h").

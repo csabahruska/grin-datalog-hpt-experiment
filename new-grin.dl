@@ -45,6 +45,9 @@ eval q = v <- fetch q
 .type Literal
 .type CodeName = BasicBlock | Function
 
+// variable
+// example: result <- pure value
+.decl Move(result:Variable, value:Variable)
 // literal value
 // example: result <- pure 1
 .decl LitAssign(result:Variable, l:Literal)
@@ -56,6 +59,8 @@ eval q = v <- fetch q
 // example: result <- fetch value
 .decl Fetch(result:Variable, value:Variable)
 .decl Store(result:Variable, value:Variable)
+// example: result <- update target value
+.decl Update(result:Variable, target:Variable, value:Variable)
 // app a.k.a. call
 // example: call_result <- f value0 value1
 .decl Call(call_result:Variable, f:Function)

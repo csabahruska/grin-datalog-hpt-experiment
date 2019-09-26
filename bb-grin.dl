@@ -1,3 +1,4 @@
+// datalog ast model for grin with basic blocks
 /*
   OLD GRIN PROBLEMS:
     bind pattern naming

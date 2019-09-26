@@ -1,3 +1,4 @@
+// heap points-to analysis for grin with basic blocks
 /*
   OLD GRIN PROBLEMS:
     bind pattern naming
@@ -306,16 +307,12 @@ Value(case_result, val) :-
   ReturnValue(bb, v),
   Value(v, val).
 
-// util
+// util: value origins/sources
 Value(n, n) :-
   Node(n, _).
 
 Value(v, v) :-
   Store(v, _).
-
-//Value(v, v) :-
-//  Update(v, _, _).
-
 
 // HPT: store
 Value(v, val) :-
@@ -324,6 +321,18 @@ Value(v, val) :-
   Store(val0, sv),
   Value(sv, val).
 
+// HPT: update
+Value(v, val) :-
+  Fetch(v, v0),
+  Value(v0, val0),
+  Update(_, val0, sv),
+  Value(sv, val).
+
+/*
+  TODO:
+    case/alt/default pattern
+    context sensitivity
+*/
 
 /*
 grinMain =

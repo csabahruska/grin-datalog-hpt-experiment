@@ -1,5 +1,5 @@
-#include "old/complex.dl"
-// #include "old/simple.dl"
+#include "new/complex.dl"
+// #include "new/simple.dl"
 
 // heap points-to analysis for grin with basic blocks
 /*
@@ -77,6 +77,7 @@
 // instruction ordering
 .decl FirstInst(n:CodeName, result:Variable)
 .decl NextInst(prev:Variable, next:Variable)
+
 
 // Reachability
 .decl ReachableCode(n:CodeName)
@@ -188,11 +189,27 @@ Value(r, val) :-
   Value(v, val).
 
 // bind pattern
+// v@(tag ...) <- pure n
+// producer of n is val
+// val <- pure (tag ...)
+// THEN the producer of v is val
 Value(v, val) :-
   NodePattern(v, tag, n),
   Value(n, val),
   Node(val, tag).
 
+// v@(tag ...) <- pure (tag ...)
+// THEN the producer of v is v
+// NOTE: this is already handled by value origins
+// Value(v, v) :-
+//   NodePattern(v, tag, n),
+//   Node(v, tag).
+
+// v@(tag ... param ...) <- pure n
+// producer of n is nval
+// nval <- pure (tag ... arg ...)
+// producer of arg is argval
+// THEN the producer of param is argval
 Value(param, argval) :-
   NodePattern(v, tag, n),
   NodeParameter(v, i, param),
@@ -200,6 +217,17 @@ Value(param, argval) :-
   Node(nval, tag),
   NodeArgument(nval, i, arg),
   Value(arg, argval).
+
+// v@(tag ... param ...) <- pure (tag ... arg ...)
+// producer of arg is argval
+// THEN the producer of param is argval
+// NOTE: already handled by first case
+// Value(param, argval) :-
+//   NodePattern(v, tag, n),
+//   NodeParameter(v, i, param),
+//   Node(v, tag),
+//   Value(arg, argval),
+//   Move(param, arg).
 
 
 // case - alt

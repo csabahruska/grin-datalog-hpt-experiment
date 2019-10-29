@@ -1,3 +1,6 @@
+#include "new/complex.dl"
+// #include "new/simple.dl"
+
 // heap points-to analysis for grin with basic blocks
 /*
   OLD GRIN PROBLEMS:
@@ -13,30 +16,6 @@
 
   APPROACH:
     define a new AST for the improved GRIN with conversion function to/from the current GRIN AST
-*/
-
-
-/*
-grinMain =
-  c0 <- pure 1
-  c1 <- pure 12
-
-  v1 <- pure (CInt c0)
-  t1 <- store v1
-  v2 <- pure (CInt c1)
-  t2 <- store v2
-  v3 <- eval t2
-  p1@(CInt r) <- pure v3
-  v4 <-_prim_int_print r
-  pure v4
-
-eval q = v <- fetch q
-         h <- case v of
-          p2@(CInt x) -> BB0 x
-          p3          -> BB1 p3
-         BB0 y = pure v
-         BB1 y2 = pure y2
-         pure h
 */
 
 .type BasicBlock
@@ -99,58 +78,6 @@ eval q = v <- fetch q
 .decl FirstInst(n:CodeName, result:Variable)
 .decl NextInst(prev:Variable, next:Variable)
 
-//LitAssign("c0", "1", "Int").
-Node("c0", "lit:Int").
-NodeArgument("c0", 0, "1").
-//LitAssign("c1", "12", "Int").
-Node("c1", "lit:Int").
-NodeArgument("c1", 0, "12").
-
-
-Node("v1", "CInt").
-NodeArgument("v1", 0, "c0").
-Store("t1", "v1").
-Node("v2", "CInt").
-NodeArgument("v2", 0, "c1").
-Store("t2", "v2").
-Call("v3", "eval").
-CallArgument("v3", 0, "t2").
-NodePattern("p1", "CInt", "v3").
-NodeParameter("p1", 0, "r").
-Call("v4", "_prim_int_print").
-CallArgument("v4", 0, "r").
-
-FunctionParameter("eval", 0, "q").
-Fetch("v", "q").
-Case("h", "v").
-
-Alt("h", "p2", "CInt", "BB0").
-AltParameter("p2", 0, "x").
-AltArgument("p2", 0, "x").
-
-Alt("h", "p3", "#default", "BB1").
-AltParameter("p3", 0, "p3").
-AltArgument("p3", 0, "p3").
-
-BlockParameter("BB0", 0, "y").
-
-ReturnValue("grinMain", "v4").
-ReturnValue("BB0", "v").
-ReturnValue("eval", "h").
-
-FirstInst("grinMain", "c0").
-FirstInst("eval", "v").
-
-NextInst("c0", "c1").
-NextInst("c1", "v1").
-NextInst("v1", "t1").
-NextInst("t1", "v2").
-NextInst("v2", "t2").
-NextInst("t2", "v3").
-NextInst("v3", "p1").
-NextInst("p1", "v4").
-
-NextInst("v", "h").
 
 // Reachability
 .decl ReachableCode(n:CodeName)
@@ -262,11 +189,27 @@ Value(r, val) :-
   Value(v, val).
 
 // bind pattern
+// v@(tag ...) <- pure n
+// producer of n is val
+// val <- pure (tag ...)
+// THEN the producer of v is val
 Value(v, val) :-
   NodePattern(v, tag, n),
   Value(n, val),
   Node(val, tag).
 
+// v@(tag ...) <- pure (tag ...)
+// THEN the producer of v is v
+// NOTE: this is already handled by value origins
+// Value(v, v) :-
+//   NodePattern(v, tag, n),
+//   Node(v, tag).
+
+// v@(tag ... param ...) <- pure n
+// producer of n is nval
+// nval <- pure (tag ... arg ...)
+// producer of arg is argval
+// THEN the producer of param is argval
 Value(param, argval) :-
   NodePattern(v, tag, n),
   NodeParameter(v, i, param),
@@ -274,6 +217,17 @@ Value(param, argval) :-
   Node(nval, tag),
   NodeArgument(nval, i, arg),
   Value(arg, argval).
+
+// v@(tag ... param ...) <- pure (tag ... arg ...)
+// producer of arg is argval
+// THEN the producer of param is argval
+// NOTE: already handled by first case
+// Value(param, argval) :-
+//   NodePattern(v, tag, n),
+//   NodeParameter(v, i, param),
+//   Node(v, tag),
+//   Value(arg, argval),
+//   Move(param, arg).
 
 
 // case - alt

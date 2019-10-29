@@ -1,0 +1,28 @@
+/*
+grinMain =
+  v0 <- pure (CNil)
+  v1 <- pure (CNil)
+  y0 <- f v0
+  y1 <- f v1
+  pure 0
+
+f x =
+  pure x
+*/
+
+Node("v0", "CNil").
+Node("v1", "CNil").
+Call("y0", "f").
+CallArgument("y0", 0, "v0").
+Call("y1", "f").
+CallArgument("y1", 0, "v1").
+
+ReturnValue("grinMain", "lit:Int").
+ReturnValue("f", "x").
+
+FunctionParameter("f", 0, "x").
+
+FirstInst("grinMain", "v0").
+NextInst("v0", "v1").
+NextInst("v1", "y0").
+NextInst("y0", "y1").

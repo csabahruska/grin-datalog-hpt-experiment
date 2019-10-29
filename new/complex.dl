@@ -1,0 +1,104 @@
+/*
+grinMain =
+  c0 <- pure 1
+  c1 <- pure 12
+
+  v1 <- pure (CInt c0)
+  t1 <- store v1
+  v2 <- pure (CInt c1)
+  t2 <- store v2
+  v3 <- eval t2
+  p4@(CInt r1) <- pure v3
+  v4 <-_prim_int_print r1
+
+  c2 <- pure 2
+  p4@(CInt r2) <- pure (CInt c2)
+  t3 <- store p2
+  v5 <- _primt_int_print r2
+  v6 <- eval t3
+
+  pure v4
+
+eval q = v <- fetch q
+         h <- case v of
+          p2@(CInt x) -> BB0 x
+          p3          -> BB1 p3
+         BB0 y = pure v
+         BB1 y2 = pure y2
+         pure h
+*/
+
+//LitAssign("c0", "1", "Int").
+Node("c0", "lit:Int").
+NodeArgument("c0", 0, "1").
+//LitAssign("c1", "12", "Int").
+Node("c1", "lit:Int").
+NodeArgument("c1", 0, "12").
+
+
+Node("v1", "CInt").
+NodeArgument("v1", 0, "c0").
+Store("t1", "v1").
+Node("v2", "CInt").
+NodeArgument("v2", 0, "c1").
+Store("t2", "v2").
+Call("v3", "eval").
+CallArgument("v3", 0, "t2").
+NodePattern("p1", "CInt", "v3").
+NodeParameter("p1", 0, "r1").
+
+Call("v4", "_prim_int_print").
+CallArgument("v4", 0, "r1").
+
+Node("c2", "lit:Int").
+// BEGIN: p4@(CInt r2) <- pure (CInt c2)
+Node("p4", "CInt").
+NodeArgument("p4", 0, "c2").
+NodePattern("p4", "CInt", "p4").
+NodeParameter("p4", 0, "r2").
+Move("r2", "c2"). // is this needed?
+// END
+Store("t3", "p4").
+
+Call("v5", "_prim_int_print").
+CallArgument("v5", 0, "r2").
+Call("v6", "eval").
+CallArgument("v6", 0, "t3").
+
+FunctionParameter("eval", 0, "q").
+Fetch("v", "q").
+Case("h", "v").
+
+Alt("h", "p2", "CInt", "BB0").
+AltParameter("p2", 0, "x").
+AltArgument("p2", 0, "x").
+
+Alt("h", "p3", "#default", "BB1").
+AltParameter("p3", 0, "p3").
+AltArgument("p3", 0, "p3").
+
+BlockParameter("BB0", 0, "y").
+
+ReturnValue("grinMain", "v4").
+ReturnValue("BB0", "v").
+ReturnValue("eval", "h").
+
+FirstInst("grinMain", "c0").
+FirstInst("eval", "v").
+
+NextInst("c0", "c1").
+NextInst("c1", "v1").
+NextInst("v1", "t1").
+NextInst("t1", "v2").
+NextInst("v2", "t2").
+NextInst("t2", "v3").
+NextInst("v3", "p1").
+NextInst("p1", "v4").
+
+NextInst("v4", "c2").
+NextInst("c2", "p4"). // QUESTION: do we need two p4s ?
+NextInst("p4", "t3").
+NextInst("t3", "v5").
+NextInst("v5", "v6").
+
+NextInst("v", "h").

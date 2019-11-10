@@ -96,7 +96,21 @@ ReachableCode(n) :-
   CodeNameInst(n0, v),
   Call(v, n).
 
+ReachableCode(bb) :-
+  ReachableCode(f),
+  CodeNameInst(f, r),
+  Alt(r, alt, t, bb),
+  TagValue(alt, t).
+
 .output ReachableCode(delimiter=",")
+
+.decl TagValue(v:Variable, t:Tag)
+.output TagValue
+
+TagValue(v, tag) :-
+  Origin(v, node),
+  Node(node, tag).
+
 
 .decl ReachableInst(v:Variable)
 
@@ -153,13 +167,13 @@ Origin(param, argval) :-
 
 Origin(alt_val, scrut_val) :-
   Case(case_result, scrut),
-  Alt(case_result, alt_val, tag, bb),
+  Alt(case_result, alt_val, tag, _),
   Origin(scrut, scrut_val),
   Node(scrut_val, tag).
 
 // alt params
 Origin(p, val) :-
-  Alt(_, alt, tag, bb),
+  Alt(_, alt, tag, _),
   AltParameter(alt, i, p),
   Origin(alt, node),
   Node(node, tag),
@@ -168,7 +182,7 @@ Origin(p, val) :-
 
 // alt bb args
 Origin(p, val) :-
-  Alt(_, alt, tag, bb),
+  Alt(_, alt, _, bb),
   AltArgument(alt, i, arg),
   BlockParameter(bb, i, p),
   Origin(arg, val).

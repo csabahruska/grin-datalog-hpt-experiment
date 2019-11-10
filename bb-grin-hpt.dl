@@ -160,99 +160,100 @@ VarPointsTo(v,t) :-
 
 ///////////////
 
-// Value Computation
-.decl Value(v:Variable, value:Variable)
-.output Value(delimiter=",")
+// Origin Computation alias Created-By
+
+.decl Origin(v:Variable, value:Variable)
+.output Origin(delimiter=",")
 
 
 // value origin: lit and node
-//Value(v, l) :-
+//Origin(v, l) :-
 //  LitAssign(l, _, _),
 //  Move(v, l).
 
-Value(v, n) :-
+Origin(v, n) :-
   Node(n, _),
   Move(v, n).
 
 // fun param
-Value(p, val) :-
+Origin(p, val) :-
   CallArgument(r, i, a),
   Call(r, f),
   FunctionParameter(f, i, p),
-  Value(a, val).
+  Origin(a, val).
 
 // fun return
-Value(r, val) :-
+Origin(r, val) :-
   Call(r, f),
   ReturnValue(f, v),
-  Value(v, val).
+  Origin(v, val).
 
 // bind pattern
-Value(v, val) :-
+Origin(v, val) :-
   NodePattern(v, tag, n),
-  Value(n, val),
+  Origin(n, val),
   Node(val, tag).
 
-Value(param, argval) :-
+Origin(param, argval) :-
   NodePattern(v, tag, n),
   NodeParameter(v, i, param),
-  Value(n, nval),
+  Origin(n, nval),
   Node(nval, tag),
   NodeArgument(nval, i, arg),
-  Value(arg, argval).
+  Origin(arg, argval).
 
 
 // case - alt
 
-Value(alt_val, scrut_val) :-
+Origin(alt_val, scrut_val) :-
   Case(case_result, scrut),
   Alt(case_result, alt_val, tag, bb),
-  Value(scrut, scrut_val),
+  Origin(scrut, scrut_val),
   Node(scrut_val, tag).
 
 // alt params
-Value(p, val) :-
+Origin(p, val) :-
   Alt(_, alt, tag, bb),
   AltParameter(alt, i, p),
-  Value(alt, node),
+  Origin(alt, node),
   Node(node, tag),
   NodeArgument(node, i, narg),
-  Value(narg, val).
+  Origin(narg, val).
 
 // alt bb args
-Value(p, val) :-
+Origin(p, val) :-
   Alt(_, alt, tag, bb),
   AltArgument(alt, i, arg),
   BlockParameter(bb, i, p),
-  Value(arg, val).
+  Origin(arg, val).
 
 // alt result
-Value(case_result, val) :-
+Origin(case_result, val) :-
   Case(case_result, _),
   Alt(case_result, _, _, bb),
   ReturnValue(bb, v),
-  Value(v, val).
+  Origin(v, val).
 
 // util: value origins/sources
-Value(n, n) :-
+Origin(n, n) :-
   Node(n, _).
 
-Value(v, v) :-
+Origin(v, v) :-
   Store(v, _).
 
 // HPT: store
-Value(v, val) :-
+Origin(v, val) :-
   Fetch(v, v0),
-  Value(v0, val0),
+  Origin(v0, val0),
   Store(val0, sv),
-  Value(sv, val).
+  Origin(sv, val).
 
 // HPT: update
-Value(v, val) :-
+Origin(v, val) :-
   Fetch(v, v0),
-  Value(v0, val0),
+  Origin(v0, val0),
   Update(_, val0, sv),
-  Value(sv, val).
+  Origin(sv, val).
 
 /*
   TODO:

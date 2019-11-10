@@ -104,60 +104,6 @@ ReachableInst(v) :-
   ReachableCode(n),
   CodeNameInst(n, v).
 
-// HPT
-/*
-Record(obj, ctx) = hctx
-VarPointsTo(var, ctx, obj, hctx) <-
-  Alloc(var, obj, method),
-  Reachable(method, ctx).
-*/
-.decl VarPointsTo(v:Variable, target:Variable)
-.output VarPointsTo(delimiter=",")
-
-VarPointsTo(v,t) :-
-  Store(v, t),
-  ReachableInst(v).
-
-VarPointsTo(v,t) :-
-  VarPointsTo(v0, t),
-  Move(v, v0),
-  ReachableInst(v).
-
-VarPointsTo(v,t) :-
-  Update(r, v, t),
-  ReachableInst(r).
-
-VarPointsTo(v,t) :-
-  FunctionParameter(_, i, v),
-  CallArgument(r, i, v0),
-  VarPointsTo(v0, t),
-  ReachableInst(r).
-
-///////////////
-
-//.decl Move(result:Variable, value:Variable)
-//.decl LitAssign(result:Variable, l:Literal, lt:LiteralType)
-//.decl Node(result_node:Variable, t:Tag)
-//.decl NodeArgument(result_node:Variable, i:number, item:Variable)
-
-//  .decl Fetch(result:Variable, value:Variable)
-//  .decl Store(result:Variable, value:Variable)
-//  .decl Update(result:Variable, target:Variable, value:Variable)
-
-//.decl Call(call_result:Variable, f:Function)
-//.decl CallArgument(call_result:Variable, i:number, value:Variable)
-//.decl NodePattern(node:Variable, t:Tag, input_value:Variable)
-//.decl NodeParameter(node:Variable, i:number, parameter:Variable)
-//.decl FunctionParameter(f:Function, i:number, parameter:Variable)
-//.decl Case(case_result:Variable, scrutinee:Variable)
-//.decl Alt(case_result:Variable, alt_value:Variable, t:Tag, b:BasicBlock)
-//.decl AltParameter(alt_value:Variable, i:number, parameter:Variable)
-//.decl AltArgument(alt_value:Variable, i:number, value:Variable)
-//.decl BlockParameter(b:BasicBlock, i:number, parameter:Variable)
-//.decl ReturnValue(n:CodeName, value:Variable)
-
-//.decl BlockCall(call_result:Variable, b:BasicBlock) // a.k.a. tail call, jump
-
 ///////////////
 
 // Origin Computation alias Created-By

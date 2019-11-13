@@ -201,19 +201,26 @@ Origin(n, n) :-
 Origin(v, v) :-
   Store(v, _).
 
+// heap abstraction
+.decl Heap(orig:Variable, item:Variable)
+.output Heap
+
+// HPT: fetch
+Origin(v, item_origin) :-
+  Fetch(v, heap),
+  Origin(heap, heap_orig),
+  Heap(heap_orig, item),
+  Origin(item, item_origin).
+
 // HPT: store
-Origin(v, val) :-
-  Fetch(v, v0),
-  Origin(v0, val0),
-  Store(val0, sv),
-  Origin(sv, val).
+Heap(v, item) :-
+  Store(v, item).
 
 // HPT: update
-Origin(v, val) :-
-  Fetch(v, v0),
-  Origin(v0, val0),
-  Update(_, val0, sv),
-  Origin(sv, val).
+Heap(heap_orig, item) :-
+  Update(_, heap, sv),
+  Origin(heap, heap_orig),
+  Heap(heap_orig, item).
 
 /*
   TODO:

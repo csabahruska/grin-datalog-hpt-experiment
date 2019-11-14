@@ -217,10 +217,10 @@ Heap(v, item) :-
   Store(v, item).
 
 // HPT: update
-Heap(heap_orig, item) :-
+Heap(heap_orig, sv) :-
   Update(_, heap, sv),
   Origin(heap, heap_orig),
-  Heap(heap_orig, item).
+  Heap(heap_orig, _).
 
 /*
   TODO:
